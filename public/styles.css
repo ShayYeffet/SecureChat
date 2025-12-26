@@ -435,20 +435,73 @@ body {
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
+    body {
+        align-items: stretch;
+        justify-content: stretch;
+        padding: 0;
+        margin: 0;
+    }
+
     .container {
         padding: 0;
+        height: 100vh;
+        height: 100dvh; /* Dynamic viewport height for mobile */
+        max-width: none;
+        display: flex;
+        flex-direction: column;
     }
 
     .login-box {
         border-radius: 0;
         padding: 30px 20px;
         min-height: 100vh;
+        min-height: 100dvh;
     }
 
     .chat-container {
         height: 100vh;
+        height: 100dvh; /* Use dynamic viewport height */
         max-height: none;
         border-radius: 0;
+        position: relative;
+    }
+
+    .message-container {
+        /* Ensure messages container takes available space minus header and input */
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        padding: 16px;
+        padding-bottom: 8px; /* Less padding at bottom for mobile */
+    }
+
+    .message-form {
+        /* Stick input to bottom */
+        position: sticky;
+        bottom: 0;
+        padding: 12px 16px;
+        padding-bottom: max(12px, env(safe-area-inset-bottom)); /* Handle home indicator */
+        background: var(--bg-light);
+        border-top: 1px solid var(--border);
+        /* Ensure input stays above keyboard */
+        z-index: 100;
+    }
+
+    .input-container {
+        gap: 8px;
+    }
+
+    .input-container input {
+        padding: 14px 16px; /* Slightly larger touch target */
+        font-size: 16px; /* Prevent zoom on iOS */
+        border-radius: 20px; /* More rounded like WhatsApp */
+    }
+
+    .btn-send {
+        padding: 14px;
+        border-radius: 50%;
+        min-width: 48px;
+        min-height: 48px;
     }
 
     .security-features {
@@ -462,6 +515,42 @@ body {
     .chat-header {
         flex-wrap: wrap;
         gap: 12px;
+        padding: 16px;
+        padding-top: max(16px, env(safe-area-inset-top)); /* Handle notch */
+    }
+
+    /* Handle keyboard appearance */
+    .chat-container.keyboard-open {
+        height: 100vh;
+        height: 100dvh;
+    }
+
+    .chat-container.keyboard-open .message-container {
+        /* Adjust for keyboard when open */
+        padding-bottom: 4px;
+    }
+
+    /* Ensure proper scrolling behavior */
+    .message-container.auto-scroll {
+        scroll-behavior: smooth;
+    }
+
+    /* Improve touch scrolling */
+    .message-container {
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
+
+    /* Better input handling on mobile */
+    .input-container input:focus {
+        /* Prevent zoom on iOS */
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+    }
+
+    /* Ensure send button is always accessible */
+    .btn-send {
+        flex-shrink: 0;
     }
 }
 

@@ -6,10 +6,17 @@ class SecureChatApp {
         this.username = '';
         this.roomName = '';
         this.isConnected = false;
+        this.isMobile = this.detectMobile();
+        this.keyboardHeight = 0;
+        this.originalViewportHeight = window.innerHeight;
         
         this.initializeElements();
         this.attachEventListeners();
         this.checkCryptoSupport();
+        
+        if (this.isMobile) {
+            this.setupMobileKeyboardHandling();
+        }
     }
 
     initializeElements() {
@@ -53,6 +60,12 @@ class SecureChatApp {
                 this.handleSendMessage(e);
             }
         });
+
+        // Mobile keyboard handling
+        if (this.isMobile) {
+            this.messageInput.addEventListener('focus', () => this.handleInputFocus());
+            this.messageInput.addEventListener('blur', () => this.handleInputBlur());
+        }
     }
 
     checkCryptoSupport() {
@@ -206,7 +219,16 @@ class SecureChatApp {
             `;
             
             this.messageContainer.appendChild(messageDiv);
-            this.scrollToBottom();
+            
+            // Enhanced scrolling for mobile
+            if (this.isMobile) {
+                // Scroll to bottom with a slight delay to ensure proper rendering
+                setTimeout(() => {
+                    this.scrollToBottom();
+                }, 50);
+            } else {
+                this.scrollToBottom();
+            }
         } catch (error) {
             console.error('Error displaying message:', error);
         }
@@ -234,7 +256,16 @@ class SecureChatApp {
             
             // Clear input
             this.messageInput.value = '';
-            this.messageInput.focus();
+            
+            // On mobile, ensure input stays focused and scroll to bottom
+            if (this.isMobile) {
+                setTimeout(() => {
+                    this.messageInput.focus();
+                    this.scrollToBottom();
+                }, 50);
+            } else {
+                this.messageInput.focus();
+            }
         } catch (error) {
             console.error('Error sending message:', error);
             this.addSystemMessage('Failed to send message');
@@ -302,6 +333,92 @@ class SecureChatApp {
 
     scrollToBottom() {
         this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
+        
+        // On mobile, ensure smooth scrolling and account for keyboard
+        if (this.isMobile) {
+            setTimeout(() => {
+                this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
+            }, 100);
+        }
+    }
+
+    detectMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+               (window.innerWidth <= 768 && 'ontouchstart' in window);
+    }
+
+    setupMobileKeyboardHandling() {
+        // Handle viewport changes (keyboard open/close)
+        const handleViewportChange = () => {
+            const currentHeight = window.innerHeight;
+            const heightDifference = this.originalViewportHeight - currentHeight;
+            
+            // If height decreased significantly, keyboard is likely open
+            if (heightDifference > 150) {
+                this.keyboardHeight = heightDifference;
+                this.handleKeyboardOpen();
+            } else {
+                this.keyboardHeight = 0;
+                this.handleKeyboardClose();
+            }
+        };
+
+        // Listen for viewport changes
+        window.addEventListener('resize', handleViewportChange);
+        
+        // Visual viewport API support (better for mobile)
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => {
+                const keyboardHeight = window.innerHeight - window.visualViewport.height;
+                if (keyboardHeight > 50) {
+                    this.keyboardHeight = keyboardHeight;
+                    this.handleKeyboardOpen();
+                } else {
+                    this.keyboardHeight = 0;
+                    this.handleKeyboardClose();
+                }
+            });
+        }
+
+        // Handle orientation changes
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                this.originalViewportHeight = window.innerHeight;
+                this.scrollToBottom();
+            }, 500);
+        });
+    }
+
+    handleKeyboardOpen() {
+        const chatContainer = document.querySelector('.chat-container');
+        if (chatContainer) {
+            chatContainer.classList.add('keyboard-open');
+        }
+        
+        // Scroll to bottom when keyboard opens
+        setTimeout(() => {
+            this.scrollToBottom();
+        }, 300);
+    }
+
+    handleKeyboardClose() {
+        const chatContainer = document.querySelector('.chat-container');
+        if (chatContainer) {
+            chatContainer.classList.remove('keyboard-open');
+        }
+    }
+
+    handleInputFocus() {
+        // Scroll to bottom when input is focused
+        setTimeout(() => {
+            this.scrollToBottom();
+            // Ensure input is visible
+            this.messageInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 300);
+    }
+
+    handleInputBlur() {
+        // Optional: Handle when input loses focus
     }
 
     showError(message) {
