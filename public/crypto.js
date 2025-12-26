@@ -361,12 +361,6 @@ class CryptoManager {
         }
     }
 
-    // Generate cryptographically secure random string
-    generateSecureRandom(length = 32) {
-        const array = crypto.getRandomValues(new Uint8Array(length));
-        return Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
     // Secure memory clearing
     clear() {
         // Clear keys from memory
@@ -385,47 +379,8 @@ class CryptoManager {
 
     // Enhanced crypto support check
     static isSupported() {
-        const required = [
-            'crypto',
-            'crypto.subtle',
-            'crypto.getRandomValues'
-        ];
-        
-        const algorithms = [
-            'AES-GCM',
-            'PBKDF2',
-            'HKDF',
-            'HMAC',
-            'SHA-256'
-        ];
-        
-        // Check basic crypto support
-        for (const req of required) {
-            if (!this.getNestedProperty(window, req)) {
-                console.error(`Missing: ${req}`);
-                return false;
-            }
-        }
-        
-        return true;
-    }
-    
-    static getNestedProperty(obj, path) {
-        return path.split('.').reduce((current, prop) => current && current[prop], obj);
-    }
-
-    // Get security status
-    getSecurityStatus() {
-        return {
-            keysInitialized: !!(this.encryptionKey && this.signingKey),
-            sessionId: this.sessionId,
-            messageCounter: this.messageCounter,
-            keyRotationInterval: this.keyRotationInterval,
-            algorithm: 'AES-256-GCM-v2',
-            keyDerivation: 'PBKDF2-600k + HKDF',
-            authentication: 'HMAC-SHA256',
-            forwardSecrecy: 'Key Rotation'
-        };
+        return typeof crypto !== 'undefined' && 
+               typeof crypto.subtle !== 'undefined';
     }
 }
 

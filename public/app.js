@@ -166,22 +166,6 @@ class SecureChatApp {
         };
     }
 
-    showWarning(message) {
-        this.loginError.textContent = message;
-        this.loginError.style.display = 'block';
-        this.loginError.style.backgroundColor = 'rgba(245, 158, 11, 0.1)';
-        this.loginError.style.borderColor = 'var(--warning)';
-        this.loginError.style.color = 'var(--warning)';
-    }
-
-    showSuccess(message) {
-        this.loginError.textContent = message;
-        this.loginError.style.display = 'block';
-        this.loginError.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
-        this.loginError.style.borderColor = 'var(--success)';
-        this.loginError.style.color = 'var(--success)';
-    }
-
     connectToServer() {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}`;
@@ -278,8 +262,15 @@ class SecureChatApp {
             
             this.messageContainer.appendChild(messageDiv);
             
-            // Scroll to bottom without affecting input focus
+            // Always scroll to bottom when new message arrives
             this.scrollToBottom();
+            
+            // On mobile, ensure scrolling happens after keyboard adjustments
+            if (this.isMobile) {
+                setTimeout(() => {
+                    this.scrollToBottom();
+                }, 150);
+            }
         } catch (error) {
             console.error('Error displaying message:', error);
         }
@@ -309,8 +300,15 @@ class SecureChatApp {
             this.messageInput.value = '';
             this.messageInput.style.height = 'auto';
             
-            // Don't refocus on mobile to prevent keyboard reopening
-            if (!this.isMobile) {
+            // Keep focus on mobile to maintain keyboard
+            if (this.isMobile) {
+                // Keep keyboard open by maintaining focus
+                this.messageInput.focus();
+                // Scroll to bottom after a short delay
+                setTimeout(() => {
+                    this.scrollToBottom();
+                }, 100);
+            } else {
                 this.messageInput.focus();
             }
         } catch (error) {
@@ -379,10 +377,21 @@ class SecureChatApp {
     }
 
     scrollToBottom() {
-        // Use requestAnimationFrame for smooth scrolling
-        requestAnimationFrame(() => {
-            this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
-        });
+        // Force scroll to bottom immediately
+        this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
+        
+        // On mobile, use multiple methods to ensure scrolling works
+        if (this.isMobile) {
+            // Use requestAnimationFrame for smooth scrolling
+            requestAnimationFrame(() => {
+                this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
+                
+                // Double-check with another frame
+                requestAnimationFrame(() => {
+                    this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
+                });
+            });
+        }
     }
 
     detectMobile() {
@@ -452,14 +461,26 @@ class SecureChatApp {
     }
 
     handleInputFocus() {
-        // Scroll to bottom when input is focused (but don't force focus)
+        // Scroll to bottom when input is focused
         setTimeout(() => {
             this.scrollToBottom();
         }, 300);
+        
+        // Mark that keyboard is open
+        if (this.isMobile) {
+            document.body.classList.add('keyboard-open');
+        }
     }
 
     handleInputBlur() {
-        // Optional: Handle when input loses focus
+        // Only remove keyboard class if not refocusing immediately
+        if (this.isMobile) {
+            setTimeout(() => {
+                if (document.activeElement !== this.messageInput) {
+                    document.body.classList.remove('keyboard-open');
+                }
+            }, 100);
+        }
     }
 
     autoResizeTextarea() {
@@ -494,10 +515,6 @@ class SecureChatApp {
 
     hideError() {
         this.loginError.style.display = 'none';
-        // Reset styling to default error state
-        this.loginError.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
-        this.loginError.style.borderColor = 'var(--danger)';
-        this.loginError.style.color = 'var(--danger)';
     }
 
     escapeHtml(text) {
