@@ -363,7 +363,7 @@ body {
 }
 
 .message {
-    display: flex;
+    display: inline-flex;
     flex-direction: column;
     gap: 4px;
     max-width: 70%;
@@ -416,6 +416,7 @@ body {
     word-wrap: break-word;
     font-size: 14px;
     line-height: 1.5;
+    white-space: pre-wrap;
 }
 
 .message.own .message-content {
@@ -485,11 +486,24 @@ body {
     max-height: 100px;
     line-height: 1.4;
     font-family: inherit;
+    /* Hide resize handle and scrollbar indicators */
+    overflow: hidden;
 }
 
 .input-container textarea:focus {
     outline: none;
     border-color: var(--primary);
+    overflow-y: auto; /* Only show scrollbar when focused and needed */
+}
+
+/* Hide scrollbar on textarea */
+.input-container textarea::-webkit-scrollbar {
+    display: none;
+}
+
+.input-container textarea {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
 }
 
 .input-wrapper {
@@ -567,9 +581,9 @@ body {
 
     /* WhatsApp-style message bubbles */
     .message {
-        max-width: 80%;
+        max-width: 85%;
         margin-bottom: 8px;
-        display: flex;
+        display: inline-flex;
         flex-direction: column;
         position: relative;
     }
@@ -592,27 +606,27 @@ body {
     }
 
     .message-content {
-        padding: 8px 12px;
+        padding: 10px 14px;
         border-radius: 18px;
         font-size: 16px;
         line-height: 1.4;
         word-wrap: break-word;
+        word-break: break-word;
         position: relative;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        white-space: pre-wrap;
     }
 
     .message.own .message-content {
         background: var(--primary);
         color: white;
         border-bottom-right-radius: 4px;
-        margin-left: 40px;
     }
 
     .message.other .message-content {
         background: var(--bg-medium);
         color: var(--text-primary);
         border-bottom-left-radius: 4px;
-        margin-right: 40px;
     }
 
     /* WhatsApp-style input area */
@@ -646,7 +660,7 @@ body {
         max-height: 100px;
         min-height: 48px;
         line-height: 1.4;
-        overflow-y: auto;
+        overflow: hidden; /* Hide scrollbar and resize handles */
         -webkit-overflow-scrolling: touch;
     }
 
@@ -659,6 +673,17 @@ body {
         border-color: var(--primary);
         transform: translateZ(0);
         -webkit-transform: translateZ(0);
+        overflow-y: auto; /* Only show scrollbar when focused and needed */
+    }
+
+    /* Hide scrollbar on mobile textarea */
+    .input-container textarea::-webkit-scrollbar {
+        display: none;
+    }
+
+    .input-container textarea {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
     }
 
     .btn-send {

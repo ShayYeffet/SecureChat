@@ -101,10 +101,8 @@ class SecureChatApp {
             return;
         }
         
-        // Show loading state during key derivation (don't show password warnings during login)
+        // Show loading state during key derivation (don't change button text)
         const submitBtn = this.loginForm.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '🔐 Connecting...';
         submitBtn.disabled = true;
         
         try {
@@ -127,7 +125,7 @@ class SecureChatApp {
             console.error('Encryption initialization error:', error);
             this.showError(`Connection failed: ${error.message}`);
         } finally {
-            submitBtn.innerHTML = originalText;
+            // Don't change button text - keep it as "Join Room"
             submitBtn.disabled = false;
         }
     }
@@ -280,15 +278,8 @@ class SecureChatApp {
             
             this.messageContainer.appendChild(messageDiv);
             
-            // Enhanced scrolling for mobile
-            if (this.isMobile) {
-                // Scroll to bottom with a slight delay to ensure proper rendering
-                setTimeout(() => {
-                    this.scrollToBottom();
-                }, 50);
-            } else {
-                this.scrollToBottom();
-            }
+            // Scroll to bottom without affecting input focus
+            this.scrollToBottom();
         } catch (error) {
             console.error('Error displaying message:', error);
         }
@@ -318,13 +309,8 @@ class SecureChatApp {
             this.messageInput.value = '';
             this.messageInput.style.height = 'auto';
             
-            // On mobile, ensure input stays focused and scroll to bottom
-            if (this.isMobile) {
-                setTimeout(() => {
-                    this.messageInput.focus();
-                    this.scrollToBottom();
-                }, 50);
-            } else {
+            // Don't refocus on mobile to prevent keyboard reopening
+            if (!this.isMobile) {
                 this.messageInput.focus();
             }
         } catch (error) {
@@ -393,14 +379,10 @@ class SecureChatApp {
     }
 
     scrollToBottom() {
-        this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
-        
-        // On mobile, ensure smooth scrolling and account for keyboard
-        if (this.isMobile) {
-            setTimeout(() => {
-                this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
-            }, 100);
-        }
+        // Use requestAnimationFrame for smooth scrolling
+        requestAnimationFrame(() => {
+            this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
+        });
     }
 
     detectMobile() {
@@ -470,11 +452,9 @@ class SecureChatApp {
     }
 
     handleInputFocus() {
-        // Scroll to bottom when input is focused
+        // Scroll to bottom when input is focused (but don't force focus)
         setTimeout(() => {
             this.scrollToBottom();
-            // Ensure input is visible
-            this.messageInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }, 300);
     }
 
@@ -488,8 +468,8 @@ class SecureChatApp {
         const newHeight = Math.min(textarea.scrollHeight, 100); // Max 100px height
         textarea.style.height = newHeight + 'px';
         
-        // Scroll to bottom when textarea expands
-        if (this.isMobile) {
+        // Only scroll if not on mobile to prevent keyboard issues
+        if (!this.isMobile) {
             setTimeout(() => this.scrollToBottom(), 50);
         }
     }
