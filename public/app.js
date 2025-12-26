@@ -200,33 +200,20 @@ class SecureChatApp {
         this.roomTitle.textContent = `Room: ${this.roomName}`;
         this.encryptionStatus.textContent = 'End-to-End Encrypted';
         
-        // FORCE container to absolute top position IMMEDIATELY
+        // ABSOLUTELY FORCE TO TOP - NO SCROLLING AT ALL
         this.messageContainer.scrollTop = 0;
-        this.messageContainer.style.scrollBehavior = 'auto'; // No smooth scrolling
-        
-        // Add simple welcome message WITHOUT any scrolling
-        this.addSystemMessage('You joined the room. Messages are encrypted.', false);
-        
-        // AGGRESSIVELY force to top position
-        this.messageContainer.scrollTop = 0;
-        this.messageContainer.scrollTo(0, 0);
-        
-        // Use requestAnimationFrame to ensure DOM is ready
-        requestAnimationFrame(() => {
-            this.messageContainer.scrollTop = 0;
-            this.messageContainer.scrollTo(0, 0);
-        });
-        
-        // Final enforcement after any potential layout changes
-        setTimeout(() => {
-            this.messageContainer.scrollTop = 0;
-            this.messageContainer.scrollTo(0, 0);
-            // Re-enable smooth scrolling for future messages
-            this.messageContainer.style.scrollBehavior = 'smooth';
-        }, 100);
+        this.messageContainer.scrollLeft = 0;
         
         // Focus on message input
         this.messageInput.focus();
+        
+        // Add welcome message AFTER everything is positioned
+        setTimeout(() => {
+            this.addSystemMessage('You joined the room. Messages are encrypted.', false);
+            // FORCE BACK TO TOP after adding message
+            this.messageContainer.scrollTop = 0;
+            this.messageContainer.scrollLeft = 0;
+        }, 10);
     }
 
     async handleMessage(event) {
@@ -405,12 +392,9 @@ class SecureChatApp {
         `;
         this.messageContainer.appendChild(messageDiv);
         
-        // Only auto-scroll if requested (not for initial welcome message)
-        if (autoScroll) {
+        // NEVER auto-scroll for system messages - only for regular messages
+        if (autoScroll && this.messageContainer.children.length > 2) {
             this.scrollToBottom();
-            setTimeout(() => {
-                this.scrollToBottom();
-            }, 100);
         }
     }
 

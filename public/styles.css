@@ -287,13 +287,13 @@ body {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    scroll-behavior: auto; /* Remove smooth scrolling on startup */
+    scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
     justify-content: flex-start;
     align-items: stretch;
-    /* Force container to start at absolute top */
-    scroll-snap-type: none;
-    overscroll-behavior: contain;
+    /* FORCE TO START AT ABSOLUTE TOP */
+    scroll-padding-top: 0;
+    scroll-margin-top: 0;
 }
 
 .message-container::-webkit-scrollbar {
@@ -526,9 +526,9 @@ body {
         position: relative;
         justify-content: flex-start;
         align-items: stretch;
-        /* Force mobile container to start at absolute top */
-        scroll-behavior: auto;
-        scroll-snap-type: none;
+        /* FORCE MOBILE TO START AT ABSOLUTE TOP */
+        scroll-padding-top: 0;
+        scroll-margin-top: 0;
     }
 
     /* WhatsApp-style message bubbles */
