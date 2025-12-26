@@ -443,7 +443,7 @@ class SecureChatApp {
     }
 
     setupMobileKeyboardHandling() {
-        // Handle viewport changes (keyboard open/close)
+        // Handle viewport changes (keyboard open/close) but NO AUTO-SCROLL
         const handleViewportChange = () => {
             const currentHeight = window.innerHeight;
             const heightDifference = this.originalViewportHeight - currentHeight;
@@ -479,7 +479,7 @@ class SecureChatApp {
         window.addEventListener('orientationchange', () => {
             setTimeout(() => {
                 this.originalViewportHeight = window.innerHeight;
-                this.scrollToBottom();
+                // NO AUTO-SCROLL on orientation change
             }, 500);
         });
     }
@@ -490,10 +490,7 @@ class SecureChatApp {
             chatContainer.classList.add('keyboard-open');
         }
         
-        // Scroll to bottom when keyboard opens
-        setTimeout(() => {
-            this.scrollToBottom();
-        }, 300);
+        // NO AUTO-SCROLL when keyboard opens!
     }
 
     handleKeyboardClose() {
@@ -504,15 +501,11 @@ class SecureChatApp {
     }
 
     handleInputFocus() {
-        // Scroll to bottom when input is focused
-        setTimeout(() => {
-            this.scrollToBottom();
-        }, 300);
-        
-        // Mark that keyboard is open
+        // Mark that keyboard is open but DON'T scroll
         if (this.isMobile) {
             document.body.classList.add('keyboard-open');
         }
+        // NO AUTO-SCROLL when keyboard opens!
     }
 
     handleInputBlur() {
@@ -532,10 +525,7 @@ class SecureChatApp {
         const newHeight = Math.min(textarea.scrollHeight, 100); // Max 100px height
         textarea.style.height = newHeight + 'px';
         
-        // Only scroll if not on mobile to prevent keyboard issues
-        if (!this.isMobile) {
-            setTimeout(() => this.scrollToBottom(), 50);
-        }
+        // NO AUTO-SCROLL when textarea resizes
     }
 
     handleTextareaKeydown(e) {
