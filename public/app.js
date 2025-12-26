@@ -200,18 +200,30 @@ class SecureChatApp {
         this.roomTitle.textContent = `Room: ${this.roomName}`;
         this.encryptionStatus.textContent = 'End-to-End Encrypted';
         
-        // Add simple welcome message WITHOUT auto-scroll
+        // FORCE container to absolute top position IMMEDIATELY
+        this.messageContainer.scrollTop = 0;
+        this.messageContainer.style.scrollBehavior = 'auto'; // No smooth scrolling
+        
+        // Add simple welcome message WITHOUT any scrolling
         this.addSystemMessage('You joined the room. Messages are encrypted.', false);
         
-        // Force scroll to top after everything is loaded
-        setTimeout(() => {
-            this.messageContainer.scrollTop = 0;
-        }, 50);
+        // AGGRESSIVELY force to top position
+        this.messageContainer.scrollTop = 0;
+        this.messageContainer.scrollTo(0, 0);
         
-        // Double-check scroll position
+        // Use requestAnimationFrame to ensure DOM is ready
+        requestAnimationFrame(() => {
+            this.messageContainer.scrollTop = 0;
+            this.messageContainer.scrollTo(0, 0);
+        });
+        
+        // Final enforcement after any potential layout changes
         setTimeout(() => {
             this.messageContainer.scrollTop = 0;
-        }, 200);
+            this.messageContainer.scrollTo(0, 0);
+            // Re-enable smooth scrolling for future messages
+            this.messageContainer.style.scrollBehavior = 'smooth';
+        }, 100);
         
         // Focus on message input
         this.messageInput.focus();
@@ -412,29 +424,30 @@ class SecureChatApp {
         const needsScroll = this.messageContainer.scrollHeight > this.messageContainer.clientHeight;
         
         if (needsScroll) {
+            // Temporarily disable smooth scrolling for immediate effect
+            const originalBehavior = this.messageContainer.style.scrollBehavior;
+            this.messageContainer.style.scrollBehavior = 'auto';
+            
             // Method 1: Direct scroll
             this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
             
-            // Method 2: Using scrollTo for better browser support
-            this.messageContainer.scrollTo({
-                top: this.messageContainer.scrollHeight,
-                behavior: 'smooth'
-            });
+            // Method 2: Using scrollTo
+            this.messageContainer.scrollTo(0, this.messageContainer.scrollHeight);
+            
+            // Re-enable smooth scrolling
+            setTimeout(() => {
+                this.messageContainer.style.scrollBehavior = originalBehavior || 'smooth';
+            }, 50);
             
             // Method 3: RequestAnimationFrame for timing
             requestAnimationFrame(() => {
                 this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
                 
-                // Method 4: Additional scroll for mobile after layout changes
+                // Additional scroll for mobile after layout changes
                 if (this.isMobile) {
                     setTimeout(() => {
                         this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
                     }, 50);
-                    
-                    // Method 5: Final scroll
-                    setTimeout(() => {
-                        this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
-                    }, 200);
                 }
             });
         }
