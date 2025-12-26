@@ -550,6 +550,11 @@ class SecureChatApp {
             // Add keyboard class for login page
             document.body.classList.add('login-keyboard-open');
             
+            // Ensure the page can scroll
+            document.body.style.overflow = 'auto';
+            document.body.style.position = 'relative';
+            document.body.style.height = 'auto';
+            
             // Scroll the focused input to be above the keyboard
             setTimeout(() => {
                 const focusedInput = e.target;
@@ -560,7 +565,10 @@ class SecureChatApp {
                 
                 if (inputRect.bottom > targetPosition) {
                     const scrollAmount = inputRect.bottom - targetPosition;
-                    window.scrollBy(0, scrollAmount);
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
                 }
             }, 300);
         }
@@ -575,6 +583,10 @@ class SecureChatApp {
                 
                 if (!anyFocused) {
                     document.body.classList.remove('login-keyboard-open');
+                    // Reset body styles when keyboard closes
+                    document.body.style.overflow = '';
+                    document.body.style.position = '';
+                    document.body.style.height = '';
                 }
             }, 100);
         }

@@ -475,23 +475,26 @@ body {
         justify-content: stretch;
         padding: 0;
         margin: 0;
-        overflow: hidden;
-        /* Prevent keyboard from pushing content */
-        position: fixed;
+        /* Allow scrolling on main page, prevent on chat */
+        overflow: auto;
+        position: relative;
         width: 100%;
-        height: 100vh;
-        height: 100dvh;
+        min-height: 100vh;
+        min-height: 100dvh;
+        /* Ensure smooth scrolling on mobile */
+        -webkit-overflow-scrolling: touch;
     }
 
     .container {
         padding: 0;
-        height: 100vh;
-        height: 100dvh;
+        min-height: 100vh;
+        min-height: 100dvh;
         max-width: none;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
         position: relative;
+        /* Allow container to scroll when needed */
+        overflow: auto;
     }
 
     .login-box {
@@ -499,6 +502,12 @@ body {
         padding: 30px 20px;
         min-height: 100vh;
         min-height: 100dvh;
+        /* Allow scrolling on login page */
+        overflow-y: auto;
+        /* Ensure smooth scrolling */
+        -webkit-overflow-scrolling: touch;
+        /* Make sure it can expand beyond viewport when needed */
+        height: auto;
     }
 
     .chat-container {
@@ -638,28 +647,40 @@ body {
         overflow-y: auto; /* Only show scrollbar when focused and needed */
     }
 
-    /* Login page keyboard handling (separate from chat) */
+    /* Login page keyboard handling - ALLOW scrolling */
     body.login-keyboard-open {
-        /* Allow scrolling on login page when keyboard opens */
-        overflow: auto;
-        height: auto;
+        overflow: auto !important;
+        height: auto !important;
+        position: relative !important;
+        /* Ensure scrolling works on all mobile browsers */
+        -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior: auto !important;
+    }
+
+    body.login-keyboard-open .container {
+        overflow: auto !important;
+        height: auto !important;
+        min-height: auto !important;
     }
 
     body.login-keyboard-open .login-box {
-        /* Ensure login box can scroll properly */
-        min-height: auto;
-        padding-bottom: 50px; /* Extra space above keyboard */
+        min-height: auto !important;
+        height: auto !important;
+        padding-bottom: 50px;
+        overflow-y: auto !important;
+        /* Ensure the login box can scroll */
+        -webkit-overflow-scrolling: touch;
     }
 
-    /* Better keyboard handling */
+    /* Chat room keyboard handling - PREVENT scrolling (don't change this!) */
     body.keyboard-open {
         height: 100vh;
         height: 100dvh;
         overflow: hidden;
+        position: fixed;
     }
 
     body.keyboard-open .chat-container {
-        /* Keep container fixed when keyboard opens */
         position: fixed;
         top: 0;
         left: 0;
@@ -668,7 +689,6 @@ body {
     }
 
     body.keyboard-open .message-container {
-        /* Adjust message area when keyboard is open */
         padding-bottom: 20px;
     }
 
