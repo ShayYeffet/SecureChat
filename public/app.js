@@ -504,14 +504,21 @@ class SecureChatApp {
     }
 
     handleInputFocus() {
-        // Scroll to bottom when input is focused
-        setTimeout(() => {
-            this.scrollToBottom();
-        }, 300);
-        
         // Mark that keyboard is open
         if (this.isMobile) {
             document.body.classList.add('keyboard-open');
+            
+            // Only scroll if there are enough messages AND we're already near the bottom
+            const hasMessages = this.messageContainer.children.length > 1;
+            const isNearBottom = this.messageContainer.scrollTop >= 
+                (this.messageContainer.scrollHeight - this.messageContainer.clientHeight - 100);
+            
+            if (hasMessages && isNearBottom) {
+                // Only scroll if we were already at the bottom and have messages
+                setTimeout(() => {
+                    this.scrollToBottom();
+                }, 300);
+            }
         }
     }
 

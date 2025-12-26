@@ -475,7 +475,12 @@ body {
         justify-content: stretch;
         padding: 0;
         margin: 0;
-        overflow: hidden; /* Prevent body scroll */
+        overflow: hidden;
+        /* Prevent keyboard from pushing content */
+        position: fixed;
+        width: 100%;
+        height: 100vh;
+        height: 100dvh;
     }
 
     .container {
@@ -486,6 +491,7 @@ body {
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        position: relative;
     }
 
     .login-box {
@@ -500,7 +506,11 @@ body {
         height: 100dvh;
         max-height: none;
         border-radius: 0;
-        position: relative;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -628,17 +638,25 @@ body {
         overflow-y: auto; /* Only show scrollbar when focused and needed */
     }
 
-    /* Ensure keyboard stays open */
-    body.keyboard-open .input-container textarea {
-        -webkit-user-select: text;
-        user-select: text;
+    /* Better keyboard handling */
+    body.keyboard-open {
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
     }
 
-    /* Better scrolling on mobile */
-    .message-container {
-        scroll-behavior: smooth;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;
+    body.keyboard-open .chat-container {
+        /* Keep container fixed when keyboard opens */
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+    body.keyboard-open .message-container {
+        /* Adjust message area when keyboard is open */
+        padding-bottom: 20px;
     }
 
     /* Hide scrollbar on mobile textarea */
