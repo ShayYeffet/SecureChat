@@ -204,8 +204,8 @@ class SecureChatApp {
         this.messageContainer.scrollTop = 0;
         this.messageContainer.scrollLeft = 0;
         
-        // Focus on message input
-        this.messageInput.focus();
+        // DON'T FOCUS INPUT ON STARTUP - this causes auto-scroll!
+        // User can tap input when they want to type
         
         // Add welcome message AFTER everything is positioned
         setTimeout(() => {
@@ -443,7 +443,7 @@ class SecureChatApp {
     }
 
     setupMobileKeyboardHandling() {
-        // Handle viewport changes (keyboard open/close) but NO AUTO-SCROLL
+        // Handle viewport changes (keyboard open/close)
         const handleViewportChange = () => {
             const currentHeight = window.innerHeight;
             const heightDifference = this.originalViewportHeight - currentHeight;
@@ -479,7 +479,7 @@ class SecureChatApp {
         window.addEventListener('orientationchange', () => {
             setTimeout(() => {
                 this.originalViewportHeight = window.innerHeight;
-                // NO AUTO-SCROLL on orientation change
+                this.scrollToBottom();
             }, 500);
         });
     }
@@ -490,7 +490,10 @@ class SecureChatApp {
             chatContainer.classList.add('keyboard-open');
         }
         
-        // NO AUTO-SCROLL when keyboard opens!
+        // Scroll to bottom when keyboard opens
+        setTimeout(() => {
+            this.scrollToBottom();
+        }, 300);
     }
 
     handleKeyboardClose() {
@@ -501,11 +504,15 @@ class SecureChatApp {
     }
 
     handleInputFocus() {
-        // Mark that keyboard is open but DON'T scroll
+        // Scroll to bottom when input is focused
+        setTimeout(() => {
+            this.scrollToBottom();
+        }, 300);
+        
+        // Mark that keyboard is open
         if (this.isMobile) {
             document.body.classList.add('keyboard-open');
         }
-        // NO AUTO-SCROLL when keyboard opens!
     }
 
     handleInputBlur() {
@@ -525,7 +532,10 @@ class SecureChatApp {
         const newHeight = Math.min(textarea.scrollHeight, 100); // Max 100px height
         textarea.style.height = newHeight + 'px';
         
-        // NO AUTO-SCROLL when textarea resizes
+        // Only scroll if not on mobile to prevent keyboard issues
+        if (!this.isMobile) {
+            setTimeout(() => this.scrollToBottom(), 50);
+        }
     }
 
     handleTextareaKeydown(e) {
