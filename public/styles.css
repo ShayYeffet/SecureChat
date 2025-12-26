@@ -638,6 +638,19 @@ body {
         overflow-y: auto; /* Only show scrollbar when focused and needed */
     }
 
+    /* Login page keyboard handling (separate from chat) */
+    body.login-keyboard-open {
+        /* Allow scrolling on login page when keyboard opens */
+        overflow: auto;
+        height: auto;
+    }
+
+    body.login-keyboard-open .login-box {
+        /* Ensure login box can scroll properly */
+        min-height: auto;
+        padding-bottom: 50px; /* Extra space above keyboard */
+    }
+
     /* Better keyboard handling */
     body.keyboard-open {
         height: 100vh;

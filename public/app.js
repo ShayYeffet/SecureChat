@@ -47,6 +47,17 @@ class SecureChatApp {
         this.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
         this.togglePassphraseBtn.addEventListener('click', () => this.togglePassphraseVisibility());
         
+        // Login page mobile keyboard handling (ONLY for login page)
+        if (this.isMobile) {
+            this.usernameInput.addEventListener('focus', (e) => this.handleLoginInputFocus(e));
+            this.roomNameInput.addEventListener('focus', (e) => this.handleLoginInputFocus(e));
+            this.passphraseInput.addEventListener('focus', (e) => this.handleLoginInputFocus(e));
+            
+            this.usernameInput.addEventListener('blur', () => this.handleLoginInputBlur());
+            this.roomNameInput.addEventListener('blur', () => this.handleLoginInputBlur());
+            this.passphraseInput.addEventListener('blur', () => this.handleLoginInputBlur());
+        }
+        
         // Message form
         this.messageForm.addEventListener('submit', (e) => this.handleSendMessage(e));
         
@@ -57,7 +68,7 @@ class SecureChatApp {
         this.messageInput.addEventListener('input', () => this.autoResizeTextarea());
         this.messageInput.addEventListener('keydown', (e) => this.handleTextareaKeydown(e));
 
-        // Mobile keyboard handling
+        // Mobile keyboard handling (ONLY for chat room)
         if (this.isMobile) {
             this.messageInput.addEventListener('focus', () => this.handleInputFocus());
             this.messageInput.addEventListener('blur', () => this.handleInputBlur());
@@ -528,6 +539,42 @@ class SecureChatApp {
             setTimeout(() => {
                 if (document.activeElement !== this.messageInput) {
                     document.body.classList.remove('keyboard-open');
+                }
+            }, 100);
+        }
+    }
+
+    // LOGIN PAGE keyboard handling (separate from chat room)
+    handleLoginInputFocus(e) {
+        if (this.isMobile) {
+            // Add keyboard class for login page
+            document.body.classList.add('login-keyboard-open');
+            
+            // Scroll the focused input to be above the keyboard
+            setTimeout(() => {
+                const focusedInput = e.target;
+                const inputRect = focusedInput.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
+                const keyboardHeight = viewportHeight * 0.4; // Estimate keyboard height
+                const targetPosition = viewportHeight - keyboardHeight - 100; // 100px above keyboard
+                
+                if (inputRect.bottom > targetPosition) {
+                    const scrollAmount = inputRect.bottom - targetPosition;
+                    window.scrollBy(0, scrollAmount);
+                }
+            }, 300);
+        }
+    }
+
+    handleLoginInputBlur() {
+        if (this.isMobile) {
+            setTimeout(() => {
+                // Check if any login input is still focused
+                const loginInputs = [this.usernameInput, this.roomNameInput, this.passphraseInput];
+                const anyFocused = loginInputs.some(input => document.activeElement === input);
+                
+                if (!anyFocused) {
+                    document.body.classList.remove('login-keyboard-open');
                 }
             }, 100);
         }
