@@ -200,6 +200,9 @@ class SecureChatApp {
         this.roomTitle.textContent = `Room: ${this.roomName}`;
         this.encryptionStatus.textContent = 'End-to-End Encrypted';
         
+        // Reset message container scroll to top
+        this.messageContainer.scrollTop = 0;
+        
         // Add simple welcome message
         this.addSystemMessage('You joined the room. Messages are encrypted.');
         
@@ -391,35 +394,41 @@ class SecureChatApp {
     }
 
     scrollToBottom() {
-        // Method 1: Direct scroll
-        this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
+        // Only scroll if there are messages and container has content
+        if (this.messageContainer.children.length === 0) {
+            return;
+        }
         
-        // Method 2: Using scrollTo for better browser support
-        this.messageContainer.scrollTo({
-            top: this.messageContainer.scrollHeight,
-            behavior: 'smooth'
-        });
+        // Check if we need to scroll (content overflows)
+        const needsScroll = this.messageContainer.scrollHeight > this.messageContainer.clientHeight;
         
-        // Method 3: RequestAnimationFrame for timing
-        requestAnimationFrame(() => {
+        if (needsScroll) {
+            // Method 1: Direct scroll
             this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
             
-            // Method 4: Additional scroll for mobile after layout changes
-            if (this.isMobile) {
-                setTimeout(() => {
-                    this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
-                    this.messageContainer.scrollTo({
-                        top: this.messageContainer.scrollHeight,
-                        behavior: 'auto'
-                    });
-                }, 50);
+            // Method 2: Using scrollTo for better browser support
+            this.messageContainer.scrollTo({
+                top: this.messageContainer.scrollHeight,
+                behavior: 'smooth'
+            });
+            
+            // Method 3: RequestAnimationFrame for timing
+            requestAnimationFrame(() => {
+                this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
                 
-                // Method 5: Final aggressive scroll
-                setTimeout(() => {
-                    this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
-                }, 200);
-            }
-        });
+                // Method 4: Additional scroll for mobile after layout changes
+                if (this.isMobile) {
+                    setTimeout(() => {
+                        this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
+                    }, 50);
+                    
+                    // Method 5: Final scroll
+                    setTimeout(() => {
+                        this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
+                    }, 200);
+                }
+            });
+        }
     }
 
     detectMobile() {
@@ -525,13 +534,18 @@ class SecureChatApp {
 
     handleTextareaKeydown(e) {
         if (e.key === 'Enter') {
-            if (e.shiftKey) {
-                // Allow new line with Shift+Enter
-                return;
+            if (this.isMobile) {
+                // On mobile, Enter always creates new line
+                // Only send with the send button
+                return; // Allow default behavior (new line)
             } else {
-                // Send message with Enter
-                e.preventDefault();
-                this.handleSendMessage(e);
+                // On desktop, Shift+Enter = new line, Enter = send
+                if (e.shiftKey) {
+                    return; // Allow new line with Shift+Enter
+                } else {
+                    e.preventDefault();
+                    this.handleSendMessage(e);
+                }
             }
         }
     }
