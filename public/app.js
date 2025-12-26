@@ -262,15 +262,18 @@ class SecureChatApp {
             
             this.messageContainer.appendChild(messageDiv);
             
-            // Always scroll to bottom when new message arrives
+            // Force immediate scroll to show new message
             this.scrollToBottom();
             
-            // On mobile, ensure scrolling happens after keyboard adjustments
-            if (this.isMobile) {
-                setTimeout(() => {
-                    this.scrollToBottom();
-                }, 150);
-            }
+            // Additional scrolls to ensure it works on all devices
+            setTimeout(() => {
+                this.scrollToBottom();
+            }, 50);
+            
+            setTimeout(() => {
+                this.scrollToBottom();
+            }, 200);
+            
         } catch (error) {
             console.error('Error displaying message:', error);
         }
@@ -304,12 +307,18 @@ class SecureChatApp {
             if (this.isMobile) {
                 // Keep keyboard open by maintaining focus
                 this.messageInput.focus();
-                // Scroll to bottom after a short delay
+                // Immediate scroll after sending
+                this.scrollToBottom();
+                // Additional scroll after potential layout changes
                 setTimeout(() => {
                     this.scrollToBottom();
                 }, 100);
+                setTimeout(() => {
+                    this.scrollToBottom();
+                }, 300);
             } else {
                 this.messageInput.focus();
+                this.scrollToBottom();
             }
         } catch (error) {
             console.error('Error sending message:', error);
@@ -373,25 +382,44 @@ class SecureChatApp {
             ${this.escapeHtml(text)}
         `;
         this.messageContainer.appendChild(messageDiv);
+        
+        // Ensure system messages also trigger scroll
         this.scrollToBottom();
+        setTimeout(() => {
+            this.scrollToBottom();
+        }, 100);
     }
 
     scrollToBottom() {
-        // Force scroll to bottom immediately
+        // Method 1: Direct scroll
         this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
         
-        // On mobile, use multiple methods to ensure scrolling works
-        if (this.isMobile) {
-            // Use requestAnimationFrame for smooth scrolling
-            requestAnimationFrame(() => {
-                this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
-                
-                // Double-check with another frame
-                requestAnimationFrame(() => {
+        // Method 2: Using scrollTo for better browser support
+        this.messageContainer.scrollTo({
+            top: this.messageContainer.scrollHeight,
+            behavior: 'smooth'
+        });
+        
+        // Method 3: RequestAnimationFrame for timing
+        requestAnimationFrame(() => {
+            this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
+            
+            // Method 4: Additional scroll for mobile after layout changes
+            if (this.isMobile) {
+                setTimeout(() => {
                     this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
-                });
-            });
-        }
+                    this.messageContainer.scrollTo({
+                        top: this.messageContainer.scrollHeight,
+                        behavior: 'auto'
+                    });
+                }, 50);
+                
+                // Method 5: Final aggressive scroll
+                setTimeout(() => {
+                    this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
+                }, 200);
+            }
+        });
     }
 
     detectMobile() {
