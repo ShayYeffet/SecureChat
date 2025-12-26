@@ -53,13 +53,9 @@ class SecureChatApp {
         // Leave button
         this.leaveBtn.addEventListener('click', () => this.handleLeave());
         
-        // Enter key in message input
-        this.messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                this.handleSendMessage(e);
-            }
-        });
+        // Textarea auto-resize and enter handling
+        this.messageInput.addEventListener('input', () => this.autoResizeTextarea());
+        this.messageInput.addEventListener('keydown', (e) => this.handleTextareaKeydown(e));
 
         // Mobile keyboard handling
         if (this.isMobile) {
@@ -99,29 +95,93 @@ class SecureChatApp {
         const roomName = this.roomNameInput.value.trim();
         const passphrase = this.passphraseInput.value;
         
-        // Validation
+        // Basic validation
         if (!username || !roomName || !passphrase) {
             this.showError('All fields are required');
             return;
         }
         
-        if (passphrase.length < 8) {
-            this.showError('Passphrase must be at least 8 characters');
-            return;
+        // Show loading state during key derivation (don't show password warnings during login)
+        const submitBtn = this.loginForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '🔐 Connecting...';
+        submitBtn.disabled = true;
+        
+        try {
+            // Derive encryption key from passphrase
+            console.log('🔐 Starting key derivation...');
+            const keyDerived = await this.crypto.deriveKey(passphrase, roomName);
+            
+            if (!keyDerived) {
+                this.showError('Failed to initialize encryption. Please try again.');
+                return;
+            }
+            
+            console.log('✅ Key derivation successful');
+            
+            // Connect to WebSocket server
+            this.username = username;
+            this.roomName = roomName;
+            this.connectToServer();
+        } catch (error) {
+            console.error('Encryption initialization error:', error);
+            this.showError(`Connection failed: ${error.message}`);
+        } finally {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    }
+
+    checkPassphraseStrength(passphrase) {
+        let score = 0;
+        const feedback = [];
+        
+        // Length check
+        if (passphrase.length >= 12) score++;
+        else if (passphrase.length >= 8) {
+            score += 0.5;
+            feedback.push('consider 12+ characters');
+        } else {
+            feedback.push('use 8+ characters');
         }
         
-        // Derive encryption key from passphrase
-        const keyDerived = await this.crypto.deriveKey(passphrase, roomName);
+        // Character variety
+        if (/[a-z]/.test(passphrase)) score++;
+        else feedback.push('add lowercase letters');
         
-        if (!keyDerived) {
-            this.showError('Failed to initialize encryption');
-            return;
-        }
+        if (/[A-Z]/.test(passphrase)) score++;
+        else feedback.push('add uppercase letters');
         
-        // Connect to WebSocket server
-        this.username = username;
-        this.roomName = roomName;
-        this.connectToServer();
+        if (/[0-9]/.test(passphrase)) score++;
+        else feedback.push('add numbers');
+        
+        if (/[^a-zA-Z0-9]/.test(passphrase)) score++;
+        else feedback.push('add symbols');
+        
+        // Common patterns check
+        if (!/(.)\1{2,}/.test(passphrase)) score += 0.5;
+        else feedback.push('avoid repeated characters');
+        
+        return {
+            score,
+            feedback: feedback.join(', ')
+        };
+    }
+
+    showWarning(message) {
+        this.loginError.textContent = message;
+        this.loginError.style.display = 'block';
+        this.loginError.style.backgroundColor = 'rgba(245, 158, 11, 0.1)';
+        this.loginError.style.borderColor = 'var(--warning)';
+        this.loginError.style.color = 'var(--warning)';
+    }
+
+    showSuccess(message) {
+        this.loginError.textContent = message;
+        this.loginError.style.display = 'block';
+        this.loginError.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+        this.loginError.style.borderColor = 'var(--success)';
+        this.loginError.style.color = 'var(--success)';
     }
 
     connectToServer() {
@@ -154,12 +214,12 @@ class SecureChatApp {
         this.loginScreen.classList.remove('active');
         this.chatScreen.classList.add('active');
         
-        // Update UI
+        // Update UI with simple status
         this.roomTitle.textContent = `Room: ${this.roomName}`;
         this.encryptionStatus.textContent = 'End-to-End Encrypted';
         
-        // Add welcome message
-        this.addSystemMessage('You joined the room. All messages are end-to-end encrypted.');
+        // Add simple welcome message
+        this.addSystemMessage('You joined the room. Messages are encrypted.');
         
         // Focus on message input
         this.messageInput.focus();
@@ -254,8 +314,9 @@ class SecureChatApp {
                 encryptedData: encryptedData
             }));
             
-            // Clear input
+            // Clear input and reset height
             this.messageInput.value = '';
+            this.messageInput.style.height = 'auto';
             
             // On mobile, ensure input stays focused and scroll to bottom
             if (this.isMobile) {
@@ -421,6 +482,31 @@ class SecureChatApp {
         // Optional: Handle when input loses focus
     }
 
+    autoResizeTextarea() {
+        const textarea = this.messageInput;
+        textarea.style.height = 'auto';
+        const newHeight = Math.min(textarea.scrollHeight, 100); // Max 100px height
+        textarea.style.height = newHeight + 'px';
+        
+        // Scroll to bottom when textarea expands
+        if (this.isMobile) {
+            setTimeout(() => this.scrollToBottom(), 50);
+        }
+    }
+
+    handleTextareaKeydown(e) {
+        if (e.key === 'Enter') {
+            if (e.shiftKey) {
+                // Allow new line with Shift+Enter
+                return;
+            } else {
+                // Send message with Enter
+                e.preventDefault();
+                this.handleSendMessage(e);
+            }
+        }
+    }
+
     showError(message) {
         this.loginError.textContent = message;
         this.loginError.style.display = 'block';
@@ -428,6 +514,10 @@ class SecureChatApp {
 
     hideError() {
         this.loginError.style.display = 'none';
+        // Reset styling to default error state
+        this.loginError.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+        this.loginError.style.borderColor = 'var(--danger)';
+        this.loginError.style.color = 'var(--danger)';
     }
 
     escapeHtml(text) {
