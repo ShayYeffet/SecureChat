@@ -200,11 +200,18 @@ class SecureChatApp {
         this.roomTitle.textContent = `Room: ${this.roomName}`;
         this.encryptionStatus.textContent = 'End-to-End Encrypted';
         
-        // Reset message container scroll to top
-        this.messageContainer.scrollTop = 0;
+        // Add simple welcome message WITHOUT auto-scroll
+        this.addSystemMessage('You joined the room. Messages are encrypted.', false);
         
-        // Add simple welcome message
-        this.addSystemMessage('You joined the room. Messages are encrypted.');
+        // Force scroll to top after everything is loaded
+        setTimeout(() => {
+            this.messageContainer.scrollTop = 0;
+        }, 50);
+        
+        // Double-check scroll position
+        setTimeout(() => {
+            this.messageContainer.scrollTop = 0;
+        }, 200);
         
         // Focus on message input
         this.messageInput.focus();
@@ -373,7 +380,7 @@ class SecureChatApp {
         this.isConnected = false;
     }
 
-    addSystemMessage(text) {
+    addSystemMessage(text, autoScroll = true) {
         const messageDiv = document.createElement('div');
         messageDiv.className = 'system-message';
         messageDiv.innerHTML = `
@@ -386,11 +393,13 @@ class SecureChatApp {
         `;
         this.messageContainer.appendChild(messageDiv);
         
-        // Ensure system messages also trigger scroll
-        this.scrollToBottom();
-        setTimeout(() => {
+        // Only auto-scroll if requested (not for initial welcome message)
+        if (autoScroll) {
             this.scrollToBottom();
-        }, 100);
+            setTimeout(() => {
+                this.scrollToBottom();
+            }, 100);
+        }
     }
 
     scrollToBottom() {
